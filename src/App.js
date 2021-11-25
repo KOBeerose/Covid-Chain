@@ -3,7 +3,8 @@ import {Container, Card, CardContent, makeStyles, Grid, TextField, Button, respo
 import QRCode from 'qrcode';
 import QrReader from 'react-qr-reader';
 import { withThemeCreator } from '@material-ui/styles';
-
+const Web3 = require("web3")
+const fs = require('fs');
 
 function App() { 
   const [text, setText] = useState('');
@@ -12,8 +13,10 @@ function App() {
   const [scanResultWebCam, setScanResultWebCam] =  useState('');
   const classes = useStyles();
   const qrRef = useRef(null);
-
-
+  const web3 = new Web3("http://localhost:8545")
+  const contract = JSON.parse(fs.readFileSync('./build/contracts/CovidVacPass.json', 'utf8'));
+  const NameContract = new web3.eth.Contract(contract.abi, "0x843592443c73BA01835868dD0Da74eE623138B8b");
+  let result;
   const generateQrCode = async () => {
     try {
           const response = await QRCode.toDataURL(text);
@@ -41,9 +44,14 @@ function App() {
         setScanResultWebCam(result);
     }
    }
+  async function scanForPass(qrCode) {
+    return result =  await NameContract.methods.scanForPass(qrCode).call();
+  }
+
+
   return (
     <Container className={classes.conatiner}>
-      <img src="covidchain.png" className={classes.img}></img>
+      <img src="covidchain.png" className={classes.img} alt="logo"></img>
           <Card className={classes.card}>
               <h1 className={classes.title}>Fake Vaccination Pass Detection using BlockChain Technology</h1>
               <CardContent>
@@ -70,7 +78,8 @@ function App() {
                           onScan={handleScanFile}
                           legacyMode
                         />
-                        <h3>Scanned Image's Code: {scanResultFile}</h3>
+                        <h3>Scanned Image's Code: {scanResultFile}</h3><br></br>
+                        <h3>The result is: {scanForPass(scanResultFile)}</h3>
                       </Grid>
                       <Grid item xl={4} lg={4} md={6} sm={12} xs={12}>
                          <h3>Qr Code Scan by Web Cam</h3>
