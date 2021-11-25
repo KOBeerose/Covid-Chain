@@ -3,6 +3,7 @@ import {Container, Card, CardContent, makeStyles, Grid, TextField, Button, respo
 import QRCode from 'qrcode';
 import QrReader from 'react-qr-reader';
 import { withThemeCreator } from '@material-ui/styles';
+import jsonData from './build/contracts/CovidVacPass.json';
 const Web3 = require("web3")
 const fs = require('fs');
 
@@ -14,7 +15,8 @@ function App() {
   const classes = useStyles();
   const qrRef = useRef(null);
   const web3 = new Web3("http://localhost:8545")
-  const contract = JSON.parse(fs.readFileSync('./build/contracts/CovidVacPass.json', 'utf8'));
+  // const contract = JSON.parse(fs.readFileSync('./build/contracts/CovidVacPass.json', 'utf8'));
+  const contract = () => JSON.parse(JSON.stringify(jsonData));
   const NameContract = new web3.eth.Contract(contract.abi, "0x843592443c73BA01835868dD0Da74eE623138B8b");
   let result;
   const generateQrCode = async () => {
