@@ -11,6 +11,7 @@
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.3",
     "@testing-library/user-event": "^12.6.2",
+    "cors": "^2.8.5",
     "create-app-react": "^1.0.6",
     "fs": "0.0.1-security",
     "qrcode": "^1.4.4",

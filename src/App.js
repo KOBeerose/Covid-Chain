@@ -3,9 +3,7 @@ import {Container, Card, CardContent, makeStyles, Grid, TextField, Button, respo
 import QRCode from 'qrcode';
 import QrReader from 'react-qr-reader';
 import { withThemeCreator } from '@material-ui/styles';
-import jsonData from './build/contracts/CovidVacPass.json';
-const Web3 = require("web3")
-const fs = require('fs');
+
 
 function App() { 
   const [text, setText] = useState('');
@@ -14,11 +12,10 @@ function App() {
   const [scanResultWebCam, setScanResultWebCam] =  useState('');
   const classes = useStyles();
   const qrRef = useRef(null);
-  const web3 = new Web3("http://localhost:8545")
-  // const contract = JSON.parse(fs.readFileSync('./build/contracts/CovidVacPass.json', 'utf8'));
-  const contract = () => JSON.parse(JSON.stringify(jsonData));
-  const NameContract = new web3.eth.Contract(contract.abi, "0x843592443c73BA01835868dD0Da74eE623138B8b");
-  let result;
+  const [status, setStatus] = useState("");
+  const [status_live, setStatus_live] = useState("");
+  
+  
   const generateQrCode = async () => {
     try {
           const response = await QRCode.toDataURL(text);
@@ -32,7 +29,9 @@ function App() {
   }
   const handleScanFile = (result) => {
       if (result) {
-          setScanResultFile(result);
+      scanForPass(result);
+      }else{
+        setStatus("Not a QR Code");
       }
   }
   const onScanFile = () => {
@@ -42,14 +41,58 @@ function App() {
     console.log(error);
   }
   const handleScanWebCam = (result) => {
-    if (result){
-        setScanResultWebCam(result);
-    }
+    if (result) {
+      scanForPass1(result);
+      }else{
+        setStatus_live("Not a QR Code");
+      }
    }
-  async function scanForPass(qrCode) {
-    return result =  await NameContract.methods.scanForPass(qrCode).call();
-  }
-
+  function scanForPass1(qrCode) {
+    debugger
+    fetch(
+      'http://localhost:5000',{
+       headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: "POST",
+      body: JSON.stringify({result:qrCode})
+    }
+    ).then(
+      response =>{
+        response.json().then(json =>{
+          console.log(json)
+          if(json.result){
+            setStatus_live("this belongs to the blockchain");
+          }else{
+            setStatus_live("this does not belong to the blockchain");
+          }
+        });
+      }
+    )};
+    function scanForPass(qrCode) {
+      debugger
+      fetch(
+        'http://localhost:5000',{
+         headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify({result:qrCode})
+      }
+      ).then(
+        response =>{
+          response.json().then(json =>{
+            console.log(json)
+            if(json.result){
+              setStatus("this belongs to the blockchain");
+            }else{
+              setStatus("this does not belong to the blockchain");
+            }
+          });
+        }
+      )}; 
 
   return (
     <Container className={classes.conatiner}>
@@ -81,7 +124,7 @@ function App() {
                           legacyMode
                         />
                         <h3>Scanned Image's Code: {scanResultFile}</h3><br></br>
-                        <h3>The result is: {scanForPass(scanResultFile)}</h3>
+                        <h3> {status}</h3>
                       </Grid>
                       <Grid item xl={4} lg={4} md={6} sm={12} xs={12}>
                          <h3>Qr Code Scan by Web Cam</h3>
@@ -91,7 +134,8 @@ function App() {
                          onError={handleErrorWebCam}
                          onScan={handleScanWebCam}
                          />
-                         <h3>Scanned By WebCam Code: {scanResultWebCam}</h3>
+                         <h3>Scanned By WebCam Code: {scanResultWebCam}</h3><br></br>
+                         <h3> {status_live}</h3>
                       </Grid>
                   </Grid>
               </CardContent>
